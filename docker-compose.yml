@@ -1,0 +1,203 @@
+version: '3.8'
+services:
+  # Config Server Replica Set (CSRS)
+  config1:
+    image: mongo:7.0
+    container_name: config1
+    command: mongod --configsvr --replSet csrs --port 27019 --bind_ip_all
+    hostname: config1
+    volumes:
+      - D:/data/config1:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.11
+      machine1-net:
+        ipv4_address: 172.80.0.11
+
+  config2:
+    image: mongo:7.0
+    container_name: config2
+    command: mongod --configsvr --replSet csrs --port 27019 --bind_ip_all
+    hostname: config2
+    volumes:
+      - D:/data/config2:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.12
+      machine2-net:
+        ipv4_address: 172.81.0.12
+
+  config3:
+    image: mongo:7.0
+    container_name: config3
+    command: mongod --configsvr --replSet csrs --port 27019 --bind_ip_all
+    hostname: config3
+    volumes:
+      - D:/data/config3:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.13
+      machine3-net:
+        ipv4_address: 172.82.0.13
+
+  # Mongos Query Router
+  mongos:
+    image: mongo:7.0
+    container_name: mongos
+    command: mongos --configdb csrs/config1:27019,config2:27019,config3:27019 --port 27017 --bind_ip_all
+    hostname: mongos
+    depends_on: [config1, config2, config3]
+    ports:
+      - "27018:27017"
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.100
+      machine1-net:
+        ipv4_address: 172.80.0.100
+
+  # Shard 1 Replica Set
+  shard1a:
+    image: mongo:7.0
+    container_name: shard1a
+    command: mongod --shardsvr --replSet shard1rs --port 27018 --bind_ip_all
+    hostname: shard1a
+    volumes:
+      - D:/data/shard1a:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.21
+      machine1-net:
+        ipv4_address: 172.80.0.21
+
+  shard1b:
+    image: mongo:7.0
+    container_name: shard1b
+    command: mongod --shardsvr --replSet shard1rs --port 27018 --bind_ip_all
+    hostname: shard1b
+    volumes:
+      - D:/data/shard1b:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.22
+      machine2-net:
+        ipv4_address: 172.81.0.22
+
+  shard1c:
+    image: mongo:7.0
+    container_name: shard1c
+    command: mongod --shardsvr --replSet shard1rs --port 27018 --bind_ip_all
+    hostname: shard1c
+    volumes:
+      - D:/data/shard1c:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.23
+      machine3-net:
+        ipv4_address: 172.82.0.23
+
+  # Shard 2 Replica Set
+  shard2a:
+    image: mongo:7.0
+    container_name: shard2a
+    command: mongod --shardsvr --replSet shard2rs --port 27018 --bind_ip_all
+    hostname: shard2a
+    volumes:
+      - D:/data/shard2a:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.31
+      machine1-net:
+        ipv4_address: 172.80.0.31
+
+  shard2b:
+    image: mongo:7.0
+    container_name: shard2b
+    command: mongod --shardsvr --replSet shard2rs --port 27018 --bind_ip_all
+    hostname: shard2b
+    volumes:
+      - D:/data/shard2b:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.32
+      machine2-net:
+        ipv4_address: 172.81.0.32
+
+  shard2c:
+    image: mongo:7.0
+    container_name: shard2c
+    command: mongod --shardsvr --replSet shard2rs --port 27018 --bind_ip_all
+    hostname: shard2c
+    volumes:
+      - D:/data/shard2c:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.33
+      machine3-net:
+        ipv4_address: 172.82.0.33
+
+  # Shard 3 Replica Set
+  shard3a:
+    image: mongo:7.0
+    container_name: shard3a
+    command: mongod --shardsvr --replSet shard3rs --port 27018 --bind_ip_all
+    hostname: shard3a
+    volumes:
+      - D:/data/shard3a:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.41
+      machine1-net:
+        ipv4_address: 172.80.0.41
+
+  shard3b:
+    image: mongo:7.0
+    container_name: shard3b
+    command: mongod --shardsvr --replSet shard3rs --port 27018 --bind_ip_all
+    hostname: shard3b
+    volumes:
+      - D:/data/shard3b:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.42
+      machine2-net:
+        ipv4_address: 172.81.0.42
+
+  shard3c:
+    image: mongo:7.0
+    container_name: shard3c 
+    command: mongod --shardsvr --replSet shard3rs --port 27018 --bind_ip_all
+    hostname: shard3c
+    volumes:
+      - D:/data/shard3c:/data/db
+    networks:
+      mongo-cluster-net:
+        ipv4_address: 172.90.0.43
+      machine3-net:
+        ipv4_address: 172.82.0.43
+
+networks:
+  mongo-cluster-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.90.0.0/16
+  machine1-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.80.0.0/16
+  machine2-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.81.0.0/16
+  machine3-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.82.0.0/16
+  machine4-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.83.0.0/16
